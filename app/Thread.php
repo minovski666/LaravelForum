@@ -31,10 +31,6 @@ class Thread extends Model
     {
         parent::boot();
 
-        static::addGlobalScope('replyCount', function ($builder) {
-            $builder->withCount('replies');
-        });
-
         static::deleting(function ($thread) {
             $thread->replies->each->delete();
         });
@@ -83,7 +79,7 @@ class Thread extends Model
     /**
      * Add a reply to the thread.
      *
-     * @param  array $reply
+     * @param array $reply
      * @return Reply
      */
     public function addReply($reply)
@@ -94,8 +90,8 @@ class Thread extends Model
     /**
      * Apply all relevant thread filters.
      *
-     * @param  Builder       $query
-     * @param  ThreadFilters $filters
+     * @param Builder $query
+     * @param ThreadFilters $filters
      * @return Builder
      */
     public function scopeFilter($query, ThreadFilters $filters)
