@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Inspections\Spam;
 use App\Reply;
 use App\Thread;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\RedirectResponse;
 
 class RepliesController extends Controller
 {
@@ -18,8 +21,9 @@ class RepliesController extends Controller
     /**
      * Fetch all relevant replies.
      *
-     * @param int    $channelId
+     * @param int $channelId
      * @param Thread $thread
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function index($channelId, Thread $thread)
     {
@@ -29,13 +33,16 @@ class RepliesController extends Controller
     /**
      * Persist a new reply.
      *
-     * @param  integer $channelId
-     * @param  Thread  $thread
-     * @return \Illuminate\Http\RedirectResponse
+     * @param integer $channelId
+     * @param Thread $thread
+     * @param Spam $spam
+     * @return RedirectResponse
      */
-    public function store($channelId, Thread $thread)
+    public function store($channelId, Thread $thread, Spam $spam)
     {
         $this->validate(request(), ['body' => 'required']);
+
+        $spam->detect(request('body'));
 
         $reply = $thread->addReply([
             'body' => request('body'),
@@ -53,12 +60,16 @@ class RepliesController extends Controller
      * Update an existing reply.
      *
      * @param Reply $reply
+     * @param Spam $spam
+     * @throws AuthorizationException
      */
-    public function update(Reply $reply)
+    public function update(Reply $reply, Spam $spam)
     {
         $this->authorize('update', $reply);
 
         $this->validate(request(), ['body' => 'required']);
+
+        $spam->detect(request('body'));
 
         $reply->update(request(['body']));
     }
@@ -66,8 +77,9 @@ class RepliesController extends Controller
     /**
      * Delete the given reply.
      *
-     * @param  Reply $reply
-     * @return \Illuminate\Http\RedirectResponse
+     * @param Reply $reply
+     * @return RedirectResponse
+     * @throws AuthorizationException
      */
     public function destroy(Reply $reply)
     {

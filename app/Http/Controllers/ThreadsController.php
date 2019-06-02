@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Channel;
 use App\Filters\ThreadFilters;
+use App\Inspections\Spam;
 use App\Thread;
+use Carbon\Carbon;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class ThreadsController extends Controller
 {
@@ -20,9 +24,9 @@ class ThreadsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param  Channel      $channel
+     * @param Channel $channel
      * @param ThreadFilters $filters
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index(Channel $channel, ThreadFilters $filters)
     {
@@ -38,7 +42,7 @@ class ThreadsController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -48,16 +52,19 @@ class ThreadsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Spam $spam
+     * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Spam $spam)
     {
         $this->validate($request, [
             'title' => 'required',
             'body' => 'required',
             'channel_id' => 'required|exists:channels,id'
         ]);
+
+        $spam->detect('body');
 
         $thread = Thread::create([
             'user_id' => auth()->id(),
@@ -73,12 +80,15 @@ class ThreadsController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  integer     $channel
-     * @param  \App\Thread $thread
-     * @return \Illuminate\Http\Response
+     * @param integer $channel
+     * @param Thread $thread
+     * @return Response
      */
     public function show($channel, Thread $thread)
     {
+        if (auth()->check()) {
+            auth()->user()->read($thread);
+        }
         return view('threads.show', compact('thread'));
     }
 
@@ -88,6 +98,7 @@ class ThreadsController extends Controller
      * @param        $channel
      * @param Thread $thread
      * @return mixed
+     * @throws AuthorizationException
      */
     public function destroy($channel, Thread $thread)
     {
@@ -105,7 +116,7 @@ class ThreadsController extends Controller
     /**
      * Fetch all relevant threads.
      *
-     * @param Channel       $channel
+     * @param Channel $channel
      * @param ThreadFilters $filters
      * @return mixed
      */

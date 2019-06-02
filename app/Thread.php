@@ -3,6 +3,8 @@
 namespace App;
 
 use App\Filters\ThreadFilters;
+use App\Notifications\ThreadWasUpdated;
+use function foo\func;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -86,7 +88,18 @@ class Thread extends Model
      */
     public function addReply($reply)
     {
-        return $this->replies()->create($reply);
+        $reply = $this->replies()->create($reply);
+
+        $this->notifySubscribers($reply);
+
+        return $reply;
+    }
+
+    public function notifySubscribers($reply)
+    {
+        $this->subscriptions->where('user_id', '!=', $reply->user_id)
+            ->each->notify($reply);
+
     }
 
     /**
@@ -106,6 +119,8 @@ class Thread extends Model
         $this->subscriptions()->create([
             'user_id' => $userId ?: auth()->id()
         ]);
+
+        return $this;
     }
 
     public function subscriptions()
@@ -125,5 +140,13 @@ class Thread extends Model
         return $this->subscriptions()
             ->where('user_id', auth()->id())
             ->exists();
+    }
+
+    public function hasUpdatesFor($user)
+    {;
+
+        $key = $user->visitedThreadCachekey($this);
+
+        return $this->updated_at > cache($key);
     }
 }
