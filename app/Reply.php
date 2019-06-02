@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use function foo\func;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,11 +35,11 @@ class Reply extends Model
     {
         parent::boot();
 
-        static::created(function ($reply){
+        static::created(function ($reply) {
             $reply->thread->increment('replies_count');
         });
 
-        static::deleted(function ($reply){
+        static::deleted(function ($reply) {
             $reply->thread->decrement('replies_count');
         });
     }
@@ -61,6 +62,11 @@ class Reply extends Model
     public function thread()
     {
         return $this->belongsTo(Thread::class);
+    }
+
+    public function wasJustPublished()
+    {
+        return $this->created_at->gt(Carbon::now()->subMinute());
     }
 
     /**

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Inspections\Spam;
 use App\Reply;
 use App\Thread;
+use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpFoundation\Response;
 
 class RepliesController extends Controller
 {
@@ -23,7 +24,7 @@ class RepliesController extends Controller
      *
      * @param int $channelId
      * @param Thread $thread
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return LengthAwarePaginator
      */
     public function index($channelId, Thread $thread)
     {
@@ -35,25 +36,28 @@ class RepliesController extends Controller
      *
      * @param integer $channelId
      * @param Thread $thread
-     * @param Spam $spam
-     * @return RedirectResponse
+     * @return Reply
      */
-    public function store($channelId, Thread $thread, Spam $spam)
+    public function store($channelId, Thread $thread)
     {
-        $this->validate(request(), ['body' => 'required']);
-
-        $spam->detect(request('body'));
-
-        $reply = $thread->addReply([
-            'body' => request('body'),
-            'user_id' => auth()->id()
-        ]);
-
-        if (request()->expectsJson()) {
-            return $reply->load('owner');
+        if (Gate::denies('create', new Reply)) {
+            return response('You are posting to frequently. Please take a break.', 422);
         }
 
-        return back()->with('flash', 'Your reply has been left.');
+        try {
+
+            $this->validate(request(), ['body' => 'required|spamfree']);
+
+            $reply = $thread->addReply([
+                'body' => request('body'),
+                'user_id' => auth()->id()
+            ]);
+
+        } catch (Exception $e) {
+            return response('Sorry your reply could not be posted right now', 422);
+        }
+
+        return $reply->load('owner');
     }
 
     /**
@@ -61,17 +65,23 @@ class RepliesController extends Controller
      *
      * @param Reply $reply
      * @param Spam $spam
+     * @return ResponseFactory|Response
      * @throws AuthorizationException
      */
-    public function update(Reply $reply, Spam $spam)
+    public function update(Reply $reply)
     {
         $this->authorize('update', $reply);
 
-        $this->validate(request(), ['body' => 'required']);
+        try {
+            $this->validate(request(), ['body' => 'required|spamfree']);
 
-        $spam->detect(request('body'));
+            $reply->update(request(['body']));
 
-        $reply->update(request(['body']));
+        } catch (Exception $e) {
+            return response(
+                'Sorry you can not update the reply right now.', 422
+            );
+        }
     }
 
     /**
@@ -93,4 +103,5 @@ class RepliesController extends Controller
 
         return back();
     }
+
 }

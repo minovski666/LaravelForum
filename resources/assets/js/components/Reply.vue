@@ -4,7 +4,7 @@
             <div class="level">
                 <h5 class="flex">
                     <a :href="'/profiles/'+data.owner.name"
-                        v-text="data.owner.name">
+                       v-text="data.owner.name">
                     </a> said <span v-text="ago"></span>
                 </h5>
 
@@ -41,7 +41,7 @@
     export default {
         props: ['data'],
 
-        components: { Favorite },
+        components: {Favorite},
 
         data() {
             return {
@@ -67,9 +67,13 @@
 
         methods: {
             update() {
-                axios.patch('/replies/' + this.data.id, {
-                    body: this.body
-                });
+                axios.patch(
+                    '/replies/' + this.data.id, {
+                        body: this.body
+                    })
+                    .catch(error => {
+                        flash(error.response.data, 'danger');
+                    });
 
                 this.editing = false;
 
