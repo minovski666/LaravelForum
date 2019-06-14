@@ -13,6 +13,7 @@
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
+
     <!-- Scripts -->
     <script>
         window.App = {!! json_encode([
@@ -29,6 +30,9 @@
         .mr-1 { margin-right: 1em; }
         [v-cloak] { display: none; }
     </style>
+
+    @yield('header')
+
 </head>
 <body>
 <div id="app">

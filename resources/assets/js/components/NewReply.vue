@@ -13,7 +13,8 @@
 
             <button type="submit"
                     class="btn btn-default"
-                    @click="addReply">Post</button>
+                    @click="addReply">Post
+            </button>
         </div>
 
         <p class="text-center" v-else>
@@ -24,6 +25,9 @@
 </template>
 
 <script>
+    import 'jquery.caret';
+    import 'at.js';
+
     export default {
         data() {
             return {
@@ -37,9 +41,23 @@
             }
         },
 
+        mounted() {
+            $('#body').atwho({
+                at: "@",
+                delay: 750,
+                callbacks: {
+                    remoteFilter: function (query, callback) {
+                        $.getJSON("/api/users", {name: query}, function (usernames) {
+                            callback(usernames)
+                        });
+                    }
+                }
+            });
+        },
+
         methods: {
             addReply() {
-                axios.post(location.pathname + '/replies', { body: this.body })
+                axios.post(location.pathname + '/replies', {body: this.body})
                     .catch(error => {
                         flash(error.response.data, 'danger');
                     })
