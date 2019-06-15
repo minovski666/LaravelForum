@@ -4,8 +4,6 @@ namespace App;
 
 use App\Events\ThreadReceivedNewReply;
 use App\Filters\ThreadFilters;
-use App\Notifications\ThreadWasUpdated;
-use function foo\func;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -138,10 +136,14 @@ class Thread extends Model
 
     public function hasUpdatesFor($user)
     {
-        ;
-
         $key = $user->visitedThreadCachekey($this);
 
         return $this->updated_at > cache($key);
     }
+
+    public function visits()
+    {
+        return new Visits($this);
+    }
+
 }

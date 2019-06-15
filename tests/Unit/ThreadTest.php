@@ -6,6 +6,7 @@ use App\Notifications\ThreadWasUpdated;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Redis;
 use Tests\TestCase;
 
 class ThreadTest extends TestCase
@@ -121,13 +122,33 @@ class ThreadTest extends TestCase
 
         $thread = create('App\Thread');
 
-        tap(auth()->user(), function($user) use ($thread){
+        tap(auth()->user(), function ($user) use ($thread) {
             $this->assertTrue($thread->hasUpdatesFor($user));
 
             $user->read($thread);
 
             $this->assertFalse($thread->hasUpdatesFor($user));
         });
+    }
+
+    /** @test */
+    function a_thread_records_each_visit()
+    {
+        $thread = make('App\Thread', ['id' => 1]);
+
+        $thread->visits()->reset();
+
+        $this->assertSame(0, $thread->visits()->count());
+
+        $thread->visits()->record();
+
+        $this->assertEquals(1, $thread->visits()->count());
+
+//        $thread->recordVisit();
+//
+//        $this->assertEquals(2, $thread->visits());
+//
+//        $thread->visits();
     }
 
 }

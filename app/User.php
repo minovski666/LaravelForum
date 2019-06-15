@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'avatar_path',
     ];
 
     /**
@@ -50,7 +50,7 @@ class User extends Authenticatable
 
     /**
      * Get all activity for the user.
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function activity()
@@ -63,9 +63,14 @@ class User extends Authenticatable
         cache()->forever($this->visitedThreadCacheKey($thread), Carbon::now());
     }
 
+    public function getAvatarPathAttribute($avatar)
+    {
+        return $avatar ?: 'images/avatars/default.jpg';
+    }
+
     public function visitedThreadCacheKey($thread)
     {
-       return sprintf("users.%s.visits.%s", $this->id, $thread->id);
+        return sprintf("users.%s.visits.%s", $this->id, $thread->id);
 
     }
 
