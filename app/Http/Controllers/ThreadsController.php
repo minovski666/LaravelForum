@@ -38,7 +38,6 @@ class ThreadsController extends Controller
         }
 
 
-
         return view('threads.index', [
             'threads' => $threads,
             'trending' => $trending->get()
