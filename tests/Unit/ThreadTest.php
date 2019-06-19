@@ -23,12 +23,12 @@ class ThreadTest extends TestCase
     }
 
     /** @test */
-    function a_thread_can_make_a_string_path()
+    function a_thread_has_a_path()
     {
         $thread = create('App\Thread');
 
         $this->assertEquals(
-            "/threads/{$thread->channel->slug}/{$thread->id}", $thread->path()
+            "/threads/{$thread->channel->slug}/{$thread->slug}", $thread->path()
         );
     }
 
@@ -58,7 +58,7 @@ class ThreadTest extends TestCase
     }
 
     /** @test */
-    public function a_thread_notifies_all_registred_subscribers_when_a_reply_is_added()
+    public function a_thread_notifies_all_registered_subscribers_when_a_reply_is_added()
     {
         Notification::fake();
 
@@ -102,7 +102,7 @@ class ThreadTest extends TestCase
     }
 
     /** @test */
-    function it_knows_if_the_authorized_user_is_subscirbed_to_it()
+    function it_knows_if_the_authorized_user_is_subscribed_to_it()
     {
         $thread = create('App\Thread');
 

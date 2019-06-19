@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Activity;
+use App\Thread;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
@@ -74,6 +75,35 @@ class CreateThreadsTest extends TestCase
 
         $this->publishThread(['channel_id' => 999])
             ->assertSessionHasErrors('channel_id');
+    }
+
+    /** @test */
+    function a_thread_requires_a_unique_slug()
+    {
+        $this->signIn();
+        $thread = create('App\Thread', ['title' => 'Foo Title', 'slug' => 'foo-title']);
+
+        $this->assertEquals($thread->fresh()->slug, 'foo-title');
+
+        $this->post(route('threads'), $thread->toArray());
+
+        $this->assertTrue(Thread::whereSlug('foo-title-2')->exists());
+
+        $this->post(route('threads'), $thread->toArray());
+
+        $this->assertTrue(Thread::whereSlug('foo-title-3')->exists());
+    }
+
+    /** @test */
+    function a_thread_with_a_title_ends_in_a_number_shoud_create_proper_slug()
+    {
+        $this->signIn();
+        $thread = create('App\Thread', ['title' => 'Some Title 66', 'slug' => 'some-title-66']);
+
+        $this->post(route('threads'), $thread->toArray());
+
+        $this->assertTrue(Thread::whereSlug('some-title-66-2')->exists());
+
     }
 
     /** @test */
