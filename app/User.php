@@ -70,6 +70,11 @@ class User extends Authenticatable
         $this->save();
     }
 
+    public function isAdmin()
+    {
+        return in_array($this->name, ['admin']);
+    }
+
     public function read($thread)
     {
         cache()->forever($this->visitedThreadCacheKey($thread), Carbon::now());

@@ -21,6 +21,11 @@ Route::get('/home', 'HomeController@index');
 Route::get('threads', 'ThreadsController@index')->name('threads');
 Route::get('threads/create', 'ThreadsController@create');
 Route::get('threads/{channel}/{thread}', 'ThreadsController@show');
+
+Route::post('locked-threads/{thread}', 'LockedThreadsController@store')->name('locked-threads.store')->middleware('admin');
+Route::delete('locked-threads/{thread}', 'LockedThreadsController@destroy')->name('locked-threads.destroy')->middleware('admin');
+
+
 Route::delete('threads/{channel}/{thread}', 'ThreadsController@destroy');
 Route::post('threads', 'ThreadsController@store')->middleware('must-be-confirmed');
 Route::get('threads/{channel}', 'ThreadsController@index');

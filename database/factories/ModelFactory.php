@@ -14,6 +14,7 @@
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
 use App\Reply;
+use App\User;
 
 $factory->define(App\User::class, function (Faker\Generator $faker) {
     static $password;
@@ -33,6 +34,12 @@ $factory->state(App\User::class, 'unconfirmed', function (){
     ];
 });
 
+$factory->state(App\User::class, 'administrator', function (){
+    return [
+        'name' => 'admin'
+    ];
+});
+
 $factory->define(App\Thread::class, function ($faker) {
 
     $title = $faker->sentence;
@@ -45,7 +52,8 @@ $factory->define(App\Thread::class, function ($faker) {
         },
         'title' => $title,
         'body' => $faker->paragraph,
-        'slug' => str_slug($title)
+        'slug' => str_slug($title),
+        'locked' => false
     ];
 });
 
