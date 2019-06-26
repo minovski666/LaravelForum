@@ -29,7 +29,7 @@ class RegistrationTest extends TestCase
 
         event(new Registered(create('App\User')));
 
-        Mail::assertSent(PleaseConfirmYourEmail::class);
+        Mail::assertQueued(PleaseConfirmYourEmail::class);
 
     }
 
